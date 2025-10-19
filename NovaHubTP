@@ -1,0 +1,183 @@
+local p = game:GetService("Players")
+local r = game:GetService("RunService")
+local u = game:GetService("UserInputService")
+local ts = game:GetService("TweenService")
+local pl = p.LocalPlayer
+local pg = pl:WaitForChild("PlayerGui")
+
+local sg = Instance.new("ScreenGui")
+sg.Parent = pg
+sg.ResetOnSpawn = false
+
+-- TP GUI СЛЕВА
+local mf = Instance.new("Frame")
+mf.Size = UDim2.new(0, 180, 0, 150)
+mf.Position = UDim2.new(0, 20, 0.2, 0)
+mf.BackgroundColor3 = Color3.fromRGB(20, 10, 35)
+mf.BorderSizePixel = 0
+mf.Parent = sg
+
+local c = Instance.new("UICorner")
+c.CornerRadius = UDim.new(0, 12)
+c.Parent = mf
+
+local s = Instance.new("UIStroke")
+s.Thickness = 3
+s.Color = Color3.fromRGB(150, 0, 255)
+s.Parent = mf
+
+-- Верхняя панель
+local tb = Instance.new("Frame")
+tb.Size = UDim2.new(1, 0, 0, 45)
+tb.Position = UDim2.new(0, 0, 0, 0)
+tb.BackgroundColor3 = Color3.fromRGB(35, 20, 60)
+tb.BorderSizePixel = 0
+tb.Parent = mf
+
+local tbc = Instance.new("UICorner")
+tbc.CornerRadius = UDim.new(0, 12)
+tbc.Parent = tb
+
+-- Заголовок NovaHub TP
+local t = Instance.new("TextLabel")
+t.Size = UDim2.new(1, 0, 0, 25)
+t.Position = UDim2.new(0, 0, 0, 0)
+t.BackgroundTransparency = 1
+t.Text = "NovaHub TP"
+t.TextColor3 = Color3.fromRGB(255, 255, 255)
+t.TextSize = 16
+t.Font = Enum.Font.GothamBlack
+t.Parent = tb
+
+-- Приписка TT: novahubbest
+local st = Instance.new("TextLabel")
+st.Size = UDim2.new(1, 0, 0, 20)
+st.Position = UDim2.new(0, 0, 0, 25)
+st.BackgroundTransparency = 1
+st.Text = "TT: novahubbest"
+st.TextColor3 = Color3.fromRGB(150, 0, 255)
+st.TextSize = 12
+st.Font = Enum.Font.GothamBold
+st.Parent = tb
+
+local basePosition = nil
+
+local function notify(msg)
+    local notifGui = Instance.new("ScreenGui")
+    notifGui.Parent = pg
+    notifGui.ResetOnSpawn = false
+    local notifFrame = Instance.new("Frame")
+    notifFrame.Size = UDim2.new(0, 200, 0, 50)
+    notifFrame.Position = UDim2.new(1, -220, 1, -60)
+    notifFrame.BackgroundColor3 = Color3.fromRGB(35, 20, 60)
+    notifFrame.BackgroundTransparency = 1
+    notifFrame.Parent = notifGui
+    
+    local notifCorner = Instance.new("UICorner")
+    notifCorner.CornerRadius = UDim.new(0, 8)
+    notifCorner.Parent = notifFrame
+    
+    local notifStroke = Instance.new("UIStroke")
+    notifStroke.Thickness = 2
+    notifStroke.Color = Color3.fromRGB(150, 0, 255)
+    notifStroke.Parent = notifFrame
+    
+    local notifText = Instance.new("TextLabel")
+    notifText.Size = UDim2.new(1, 0, 1, 0)
+    notifText.BackgroundTransparency = 1
+    notifText.Text = msg
+    notifText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    notifText.TextSize = 14
+    notifText.Font = Enum.Font.GothamSemibold
+    notifText.Parent = notifFrame
+    
+    ts:Create(notifFrame, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
+    ts:Create(notifFrame, TweenInfo.new(0.3), {Position = UDim2.new(1, -220, 1, -120)}):Play()
+    task.wait(3)
+    ts:Create(notifFrame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+    task.wait(0.5)
+    notifGui:Destroy()
+end
+
+local function saveSafePosition()
+    local char = pl.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        basePosition = char.HumanoidRootPart.Position
+        notify("Safe Position Saved!")
+    else
+        notify("No character found!")
+    end
+end
+
+local function instantTeleport()
+    if not basePosition then
+        notify("No safe position saved!")
+        return
+    end
+    
+    local char = pl.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = CFrame.new(basePosition)
+        notify("Teleported successfully!")
+    else
+        notify("No character found!")
+    end
+end
+
+local function createBtn(text, yPos, callback)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0.9, 0, 0, 35)
+    b.Position = UDim2.new(0.05, 0, yPos, 0)
+    b.BackgroundColor3 = Color3.fromRGB(50, 25, 85)
+    b.Text = text
+    b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    b.TextSize = 12
+    b.Font = Enum.Font.GothamBlack
+    b.Parent = mf
+
+    local bc = Instance.new("UICorner")
+    bc.CornerRadius = UDim.
+new(0, 8)
+    bc.Parent = b
+
+    local bs = Instance.new("UIStroke")
+    bs.Thickness = 2
+    bs.Color = Color3.fromRGB(120, 0, 220)
+    bs.Parent = b
+
+    b.MouseButton1Click:Connect(callback)
+end
+
+createBtn("SAFE POS", 0.3, saveSafePosition)
+createBtn("INSTANT STEAL", 0.65, instantTeleport)
+
+local d = false
+local dragStart, startPos
+
+tb.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        d = true
+        dragStart = i.Position
+        startPos = mf.Position
+    end
+end)
+
+u.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        d = false
+    end
+end)
+
+u.InputChanged:Connect(function(i)
+    if d and i.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = i.Position - dragStart
+        mf.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+notify("NovaHub TP loaded!")
